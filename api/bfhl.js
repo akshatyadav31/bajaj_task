@@ -4,27 +4,27 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Parse body for Vercel (in case it's a raw buffer/string)
+    // Parse body for raw Vercel serverless environments
     let body = req.body;
-    if (typeof body === "undefined" || !body) {
+    if (!body || Object.keys(body).length === 0) {
+      // Body may not be parsed, handle manually
       let data = "";
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         req.on("data", chunk => { data += chunk; });
         req.on("end", resolve);
       });
-      body = data && JSON.parse(data);
+      body = data ? JSON.parse(data) : {};
     }
 
-    // Your details
+    // Your user details
     const full_name = "Akshat Yadav";
     const dob = "31082003";
     const email = "akshatyadav2022@vitbhopal.ac.in";
     const roll_number = "21BCE10012";
 
-    // Data extraction
+    // Extract and process input
     const inputArray = Array.isArray(body.data) ? body.data : [];
 
-    // Helper functions
     const isNumber = str => /^\d+$/.test(str);
     const isAlphabet = str => /^[a-zA-Z]+$/.test(str);
     const isSpecial = str => !isNumber(str) && !isAlphabet(str);
@@ -55,7 +55,6 @@ module.exports = async (req, res) => {
       return out;
     }
 
-    // Format user_id
     const user_id = full_name.trim().toLowerCase().replace(/\s+/g, "_") + "_" + dob;
 
     res.status(200).json({
