@@ -1,18 +1,30 @@
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   if (req.method !== "POST") {
-    // Only allow POST
     return res.status(405).json({ is_success: false, error: "Method Not Allowed" });
   }
 
   try {
+    // Parse body for Vercel (in case it's a raw buffer/string)
+    let body = req.body;
+    if (typeof body === "undefined" || !body) {
+      let data = "";
+      await new Promise((resolve) => {
+        req.on("data", chunk => { data += chunk; });
+        req.on("end", resolve);
+      });
+      body = data && JSON.parse(data);
+    }
+
+    // Your details
     const full_name = "Akshat Yadav";
     const dob = "31082003";
     const email = "akshatyadav2022@vitbhopal.ac.in";
     const roll_number = "21BCE10012";
 
-    // Parse JSON body (Vercel does this automatically)
-    const data = Array.isArray(req.body && req.body.data) ? req.body.data : [];
+    // Data extraction
+    const inputArray = Array.isArray(body.data) ? body.data : [];
 
+    // Helper functions
     const isNumber = str => /^\d+$/.test(str);
     const isAlphabet = str => /^[a-zA-Z]+$/.test(str);
     const isSpecial = str => !isNumber(str) && !isAlphabet(str);
@@ -20,7 +32,7 @@ module.exports = (req, res) => {
     let even_numbers = [], odd_numbers = [], alphabets = [], special_characters = [];
     let sum = 0, concat = "";
 
-    data.forEach(item => {
+    inputArray.forEach(item => {
       const s = String(item);
       if (isNumber(s)) {
         if (parseInt(s) % 2 === 0) even_numbers.push(s);
@@ -43,7 +55,7 @@ module.exports = (req, res) => {
       return out;
     }
 
-    // Format user_id with lowercase, underscore
+    // Format user_id
     const user_id = full_name.trim().toLowerCase().replace(/\s+/g, "_") + "_" + dob;
 
     res.status(200).json({
